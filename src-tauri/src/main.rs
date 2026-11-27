@@ -3,6 +3,7 @@
     windows_subsystem = "windows"
 )]
 
+mod ai;
 mod chess;
 mod db;
 mod engine;
@@ -37,6 +38,7 @@ use sysinfo::SystemExt;
 use tauri::{Emitter, Manager, Window};
 use tauri_plugin_log::{Target, TargetKind};
 
+use crate::ai::ai_chat;
 use crate::chess::{
     analyze_game, cancel_analysis, get_engine_config, get_engine_logs, kill_engine, kill_engines,
     stop_engine,
@@ -187,7 +189,8 @@ fn main() {
             get_game_engine_logs,
             get_progress,
             clear_progress,
-            get_sound_server_port
+            get_sound_server_port,
+            ai_chat
         ))
         .events(tauri_specta::collect_events!(
             BestMovesPayload,

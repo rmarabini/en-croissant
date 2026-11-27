@@ -488,6 +488,19 @@ async getSoundServerPort() : Promise<Result<number, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+/**
+ * Calls the configured OpenAI-compatible chat-completions endpoint and
+ * returns the assistant's reply. All failures are mapped to friendly,
+ * user-facing messages.
+ */
+async aiChat(baseUrl: string, model: string, messages: AiMessage[], token: string | null, timeoutSecs: number | null) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("ai_chat", { baseUrl, model, messages, token, timeoutSecs }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -516,6 +529,14 @@ progressEvent: "progress-event"
 
 /** user-defined types **/
 
+/**
+ * A single chat message in the OpenAI chat-completions format.
+ */
+export type AiMessage = { 
+/**
+ * One of "system", "user" or "assistant"
+ */
+role: string; content: string }
 export type AnalysisOptions = { fen: string; moves: string[]; annotateNovelties: boolean; referenceDb: string | null; reversed: boolean }
 export type BestMoves = { nodes: number; depth: number; score: Score; uciMoves: string[]; sanMoves: string[]; multipv: number; nps: number }
 export type BestMovesPayload = { bestLines: BestMoves[]; engine: string; tab: string; fen: string; moves: string[]; progress: number }

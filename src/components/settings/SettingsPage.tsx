@@ -22,6 +22,7 @@ import {
   IconKeyboard,
   IconMouse,
   IconReload,
+  IconRobot,
   IconSearch,
   IconShield,
   IconVolume,
@@ -34,6 +35,10 @@ import posthog from "posthog-js";
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  aiBaseUrlAtom,
+  aiModelAtom,
+  aiProviderAtom,
+  aiTokenAtom,
   autoPromoteAtom,
   autoSaveAtom,
   defaultPanelTabAtom,
@@ -87,6 +92,7 @@ type SettingCategory =
   | "keybinds"
   | "directories"
   | "repertoire"
+  | "ai"
   | "privacy";
 
 interface SettingItem {
@@ -177,6 +183,11 @@ export default function Page() {
   enginesDirectory = enginesDirectory || defaultEnginesDir;
   let [puzzlesDirectory, setPuzzlesDirectory] = useAtom(storedPuzzlesDirAtom);
   puzzlesDirectory = puzzlesDirectory || defaultPuzzlesDir;
+
+  const [aiProvider, setAiProvider] = useAtom(aiProviderAtom);
+  const [aiBaseUrl, setAiBaseUrl] = useAtom(aiBaseUrlAtom);
+  const [aiModel, setAiModel] = useAtom(aiModelAtom);
+  const [aiToken, setAiToken] = useAtom(aiTokenAtom);
 
   const [moveMethod, setMoveMethod] = useAtom(moveMethodAtom);
   const [pieceAnimation, setPieceAnimation] = useAtom(pieceAnimationAtom);
@@ -574,6 +585,87 @@ export default function Page() {
           />
         ),
       },
+      // AI coach settings
+      {
+        id: "ai-provider",
+        category: "ai",
+        title: t("Settings.AI.Provider"),
+        description: t("Settings.AI.Provider.Desc"),
+        keywords: ["ai", "llm", "provider", "openai", "local", "coach"],
+        render: () => (
+          <Select
+            data={[
+              { label: "OpenAI-compatible", value: "openai" },
+              { label: "Local model (Ollama / LM Studio)", value: "local" },
+            ]}
+            allowDeselect={false}
+            value={aiProvider}
+            onChange={(val) => {
+              const provider = val as "openai" | "local";
+              setAiProvider(provider);
+              // Prefill sensible defaults when switching, without overwriting
+              // values the user has already customized.
+              if (provider === "local") {
+                setAiBaseUrl((prev) =>
+                  prev && prev !== "https://api.openai.com/v1" ? prev : "http://localhost:11434",
+                );
+                setAiModel((prev) => (prev && prev !== "gpt-4o-mini" ? prev : "llama3.2"));
+              } else {
+                setAiBaseUrl((prev) =>
+                  prev && prev !== "http://localhost:11434" ? prev : "https://api.openai.com/v1",
+                );
+                setAiModel((prev) => (prev && prev !== "llama3.2" ? prev : "gpt-4o-mini"));
+              }
+            }}
+          />
+        ),
+      },
+      {
+        id: "ai-base-url",
+        category: "ai",
+        title: t("Settings.AI.BaseUrl"),
+        description: t("Settings.AI.BaseUrl.Desc"),
+        keywords: ["ai", "api", "url", "endpoint", "base url", "openai", "ollama"],
+        render: () => (
+          <TextInput
+            w={260}
+            value={aiBaseUrl}
+            onChange={(e) => setAiBaseUrl(e.currentTarget.value)}
+            placeholder="https://api.openai.com/v1"
+          />
+        ),
+      },
+      {
+        id: "ai-model",
+        category: "ai",
+        title: t("Settings.AI.Model"),
+        description: t("Settings.AI.Model.Desc"),
+        keywords: ["ai", "model", "gpt", "llama", "coach"],
+        render: () => (
+          <TextInput
+            w={200}
+            value={aiModel}
+            onChange={(e) => setAiModel(e.currentTarget.value)}
+            placeholder="gpt-4o-mini"
+          />
+        ),
+      },
+      {
+        id: "ai-token",
+        category: "ai",
+        title: t("Settings.AI.Token"),
+        description: t("Settings.AI.Token.Desc"),
+        keywords: ["ai", "token", "api key", "secret", "auth"],
+        render: () => (
+          <TextInput
+            w={260}
+            type="password"
+            value={aiToken}
+            onChange={(e) => setAiToken(e.currentTarget.value)}
+            placeholder="sk-…"
+          />
+        ),
+      },
       // Sound settings
       {
         id: "volume",
@@ -685,6 +777,14 @@ export default function Page() {
     [
       t,
       i18n,
+      aiProvider,
+      setAiProvider,
+      aiBaseUrl,
+      setAiBaseUrl,
+      aiModel,
+      setAiModel,
+      aiToken,
+      setAiToken,
       moveNotationType,
       moveMethod,
       pieceAnimation,
@@ -758,6 +858,11 @@ export default function Page() {
         title: t("Settings.Repertoire"),
         description: t("Settings.Repertoire.Desc"),
         icon: <IconBook size="1rem" />,
+      },
+      ai: {
+        title: t("Settings.AI"),
+        description: t("Settings.AI.Desc"),
+        icon: <IconRobot size="1rem" />,
       },
       privacy: {
         title: t("Settings.Privacy"),
@@ -901,6 +1006,9 @@ export default function Page() {
             <Tabs.Tab value="repertoire" leftSection={<IconBook size="1rem" />}>
               {t("Settings.Repertoire")}
             </Tabs.Tab>
+            <Tabs.Tab value="ai" leftSection={<IconRobot size="1rem" />}>
+              {t("Settings.AI")}
+            </Tabs.Tab>
             <Tabs.Tab value="privacy" leftSection={<IconShield size="1rem" />}>
               {t("Settings.Privacy")}
             </Tabs.Tab>
@@ -1016,6 +1124,16 @@ export default function Page() {
                     {t("Settings.Repertoire.Desc")}
                   </Text>
                   {renderCategorySettings("repertoire")}
+                </Tabs.Panel>
+
+                <Tabs.Panel value="ai">
+                  <Text size="lg" fw={500} className={classes.title}>
+                    {t("Settings.AI")}
+                  </Text>
+                  <Text size="xs" c="dimmed" mt={3} mb="lg">
+                    {t("Settings.AI.Desc")}
+                  </Text>
+                  {renderCategorySettings("ai")}
                 </Tabs.Panel>
 
                 <Tabs.Panel value="privacy">

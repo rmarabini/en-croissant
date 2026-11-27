@@ -39,6 +39,7 @@ import { getVariationLine } from "@/utils/chess";
 import { getPiecesCount, hasCaptures, isOp1, positionFromFen } from "@/utils/chessops";
 import type { Engine } from "@/utils/engines";
 import { getInitials } from "@/utils/format";
+import AIPanel from "./AIPanel";
 import BestMoves, { arrowColors } from "./BestMoves";
 import EngineSelection from "./EngineSelection";
 import LogsPanel from "./LogsPanel";
@@ -104,6 +105,7 @@ function AnalysisPanel() {
           <Tabs.Tab value="logs" disabled={loadedEngines.length === 0}>
             {t("Board.Analysis.Logs")}
           </Tabs.Tab>
+          <Tabs.Tab value="ai">{t("Board.Analysis.AI")}</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel
           value="engines"
@@ -262,6 +264,17 @@ function AnalysisPanel() {
           }}
         >
           <LogsPanel />
+        </Tabs.Panel>
+        <Tabs.Panel
+          value="ai"
+          pt="xs"
+          style={{
+            overflow: "hidden",
+            display: tab === "ai" ? "flex" : "none",
+            flexDirection: "column",
+          }}
+        >
+          <AIPanel />
         </Tabs.Panel>
       </Tabs>
     </Stack>

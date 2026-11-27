@@ -25,3 +25,18 @@ export const commentRehypePlugins: NonNullable<MarkdownOptions["rehypePlugins"]>
     [rehypeSanitize, commentSanitizeSchema],
     remarkGfm,
 ];
+
+// AI coach output: like comments, plus the chessmove:// protocol of the
+// clickable move references (see AiMarkdown in AIPanel).
+export const aiSanitizeSchema: SanitizeSchema = {
+    ...commentSanitizeSchema,
+    protocols: {
+        ...commentSanitizeSchema.protocols,
+        href: [...(commentSanitizeSchema.protocols?.href ?? []), "chessmove"],
+    },
+};
+
+export const aiRehypePlugins: NonNullable<MarkdownOptions["rehypePlugins"]> = [
+    rehypeRaw,
+    [rehypeSanitize, aiSanitizeSchema],
+];

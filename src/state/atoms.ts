@@ -255,6 +255,13 @@ export const telemetryEnabledAtom = atomWithStorage<boolean>("telemetry-enabled"
     getOnInit: true,
 });
 
+// AI coach
+
+export const aiProviderAtom = atomWithStorage<"openai" | "local">("ai-provider", "openai");
+export const aiBaseUrlAtom = atomWithStorage<string>("ai-base-url", "https://api.openai.com/v1");
+export const aiModelAtom = atomWithStorage<string>("ai-model", "gpt-4o-mini");
+export const aiTokenAtom = atomWithStorage<string>("ai-token", "");
+
 // Recent Files
 
 export type RecentFile = {
@@ -473,6 +480,16 @@ export const currentDbTabAtom = tabValue(dbTabFamily);
 
 const analysisTabFamily = atomFamily((_tab: string) => atom("engines"));
 export const currentAnalysisTabAtom = tabValue(analysisTabFamily);
+
+// AI coach: the summary is kept per tab (survives navigation within a session),
+// the chat history is in-memory only, like the engine transcripts.
+const aiSummaryFamily = atomFamily((_tab: string) => atom<string | null>(null));
+export const currentAiSummaryAtom = tabValue(aiSummaryFamily);
+
+const aiChatHistoryFamily = atomFamily((_tab: string) =>
+    atom<{ role: "user" | "assistant"; content: string }[]>([]),
+);
+export const currentAiChatHistoryAtom = tabValue(aiChatHistoryFamily);
 
 const practiceTabFamily = atomFamily((_tab: string) => atom("train"));
 export const currentPracticeTabAtom = tabValue(practiceTabFamily);
